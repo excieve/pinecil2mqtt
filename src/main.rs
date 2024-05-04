@@ -2,8 +2,8 @@ use log::info;
 use futures::stream::StreamExt;
 use std::error::Error;
 
-use btleplug::api::{Central, Manager as _, ScanFilter, CentralEvent, Peripheral};
-use btleplug::platform::{Manager, Adapter};
+use btleplug::api::{Central, Manager as _, ScanFilter, CentralEvent, Peripheral as _};
+use btleplug::platform::{Manager, Adapter, Peripheral};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
@@ -41,6 +41,14 @@ impl PinecilManagerBtle {
 
         Ok(adapter_list.into_iter().next().unwrap())
     }
+
+    // Identify the Pinecil from the passed peripheral object by searching the name substring
+    async fn is_pinecil(device: &Peripheral) -> Result<bool, Box<dyn Error>> {
+        let properties = device.properties().await?.unwrap();
+        let name = properties.local_name.unwrap_or_default();
+
+        Ok(name.to_lowercase().contains("pinecil"))
+    }
 }
 
 impl PinecilManager for PinecilManagerBtle {
@@ -55,7 +63,9 @@ impl PinecilManager for PinecilManagerBtle {
             match event {
                 CentralEvent::DeviceDiscovered(addr) => {
                     let device = central.peripheral(&addr).await?;
-                    info!("Discovered device: {:?}", device.properties().await?);
+                    if Self::is_pinecil(&device).await? {
+                        info!("Discovered Pinecil: {:?}", device.properties().await?);
+                    }
                 }
                 CentralEvent::DeviceConnected(addr) => {
                     info!("Device connected: {:?}", addr);
