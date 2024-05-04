@@ -1,4 +1,4 @@
-use log::info;
+use log::{debug, info};
 use futures::stream::StreamExt;
 use std::error::Error;
 
@@ -63,15 +63,33 @@ impl PinecilManager for PinecilManagerBtle {
             match event {
                 CentralEvent::DeviceDiscovered(addr) => {
                     let device = central.peripheral(&addr).await?;
-                    if Self::is_pinecil(&device).await? {
-                        info!("Discovered Pinecil: {:?}", device.properties().await?);
+                    if !Self::is_pinecil(&device).await? {
+                        continue;
+
+                    }
+                    info!("Discovered Pinecil: {:?}", device.address());
+                    debug!("Device properties: {:?}", device.properties().await?);
+
+                    if !device.is_connected().await? {
+                        device.connect().await?;
                     }
                 }
                 CentralEvent::DeviceConnected(addr) => {
-                    info!("Device connected: {:?}", addr);
+                    let device = central.peripheral(&addr).await?;
+                    if !Self::is_pinecil(&device).await? {
+                        continue;
+                    }
+
+                    info!("Pinecil connected: {:?}", device.address());
+                    debug!("Device properties: {:?}", device.properties().await?);
                 }
                 CentralEvent::DeviceDisconnected(addr) => {
-                    info!("Device disconnected: {:?}", addr);
+                    let device = central.peripheral(&addr).await?;
+                    if !Self::is_pinecil(&device).await? {
+                        continue;
+                    }
+
+                    info!("Pinecil disconnected: {:?}", device.address());
                 }
                 _ => {}
             }
