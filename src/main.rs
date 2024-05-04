@@ -1,4 +1,4 @@
-use log::{debug, info};
+use log::{debug, info, error};
 use futures::stream::StreamExt;
 use std::error::Error;
 
@@ -49,6 +49,22 @@ impl PinecilManagerBtle {
 
         Ok(name.to_lowercase().contains("pinecil"))
     }
+
+    // Check that bulk, live and settings services are available
+    fn has_required_services(device: &Peripheral) -> bool {
+        let services = device.services();
+
+        // Note that we only need the bulk service currently (might change in the future),
+        // but IronOS recommends to check for all three
+        services
+            .iter()
+            .filter(|s| {
+                s.uuid == "9eae1000-9d0d-48c5-aa55-33e27f9bc533".parse().unwrap() ||
+                s.uuid == "d85ef000-168e-4a71-aa55-33e27f9bc533".parse().unwrap() ||
+                s.uuid == "f6d80000-5a10-4eba-aa55-33e27f9bc533".parse().unwrap()
+            })
+            .count() == 3
+    }
 }
 
 impl PinecilManager for PinecilManagerBtle {
@@ -82,6 +98,14 @@ impl PinecilManager for PinecilManagerBtle {
 
                     info!("Pinecil connected: {:?}", device.address());
                     debug!("Device properties: {:?}", device.properties().await?);
+
+                    device.discover_services().await?;
+
+                    if !Self::has_required_services(&device) {
+                        error!("Pinecil does not have the required services,\
+                            check the firmware version and update if necessary.");
+                        continue;
+                    }
                 }
                 CentralEvent::DeviceDisconnected(addr) => {
                     let device = central.peripheral(&addr).await?;
