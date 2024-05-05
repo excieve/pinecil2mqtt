@@ -109,9 +109,16 @@ impl PinecilManager for PinecilManagerBtle {
                         continue;
                     }
 
-                    // Fetch and print the Pinecil info (build version, etc.)
-                    // let info = PinecilBulkQueryBtle::new(&device).query_pinecil_info().await?;
-                    // info!("Pinecil info: {}", info);
+                    let bulk_query = PinecilBulkQueryBtle::new(&device);
+
+                    // Fetch and print the Pinecil info (build version, etc.), skip on error
+                    match bulk_query.query_pinecil_info().await {
+                        Ok(info) => info!("Pinecil firmware verison: {}", info),
+                        Err(e) => {
+                            error!("Failed to fetch Pinecil info: {}", e);
+                            continue;
+                        },
+                    }
 
                     // self.poll_bulk_data(device).await?;
                 }

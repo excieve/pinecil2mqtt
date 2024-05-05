@@ -1,4 +1,5 @@
-use anyhow::Result;
+use anyhow::{anyhow, bail, Result};
+use btleplug::api::Peripheral as _;
 use btleplug::platform::Peripheral;
 
 #[derive(Debug)]
@@ -35,8 +36,20 @@ impl<'a> PinecilBulkQueryBtle<'a> {
 }
 
 impl<'a> PinecilBulkQuery for PinecilBulkQueryBtle<'a> {
+    // Query the Pinecil info from the device's bulk service characteristics
     async fn query_pinecil_info(&self) -> Result<String> {
-        todo!()
+        let crx = self.device.characteristics();
+
+        if let Some(build_crx) = crx
+            .iter()
+            .find(|c| c.uuid == "9eae1003-9d0d-48c5-aa55-33e27f9bc533".parse().unwrap()) {
+            let build = self.device.read(build_crx).await?;
+            let build_str = String::from_utf8(build).expect("Could not convert build bytes to string");
+
+            Ok(build_str)
+        } else {
+            Err(anyhow!("Could not find build characteristic"))
+        }
     }
 
     async fn query_bulk_data(&self) -> Result<PinecilBulkData> {
