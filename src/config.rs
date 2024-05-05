@@ -48,6 +48,14 @@ impl MqttConfig {
         self.port
     }
 
+    pub fn username(&self) -> Option<&str> {
+        self.username.as_deref()
+    }
+
+    pub fn password(&self) -> Option<&str> {
+        self.password.as_deref()
+    }
+
     fn default_port() -> u16 {
         1883
     }

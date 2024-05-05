@@ -37,13 +37,19 @@ impl MqttClient {
     }
 
     pub async fn run_sender(&mut self) -> Result<()> {
-        let mut options = MqttOptions::new("pinecil2mqtt", self.config.host(), self.config.port());
+        let c = self.config.clone();
+
+        let mut options = MqttOptions::new("pinecil2mqtt", c.host(), c.port());
         options.set_keep_alive(std::time::Duration::from_secs(60));
+
+        if let (Some(username), Some(password)) = (c.username(), c.password()) {
+            options.set_credentials(username, password);
+        }
 
         let (client, mut eventloop) = AsyncClient::new(options, 10);
 
         tokio::spawn(async move {
-            info!("Starting MQTT eventloop...");
+            info!("Starting MQTT eventloop at {}:{}...", c.host(), c.port());
 
             loop {
                 match eventloop.poll().await {
