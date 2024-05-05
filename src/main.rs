@@ -1,16 +1,22 @@
 mod manager;
 mod bulk;
 mod mqtt;
+mod config;
 
 use log::{info, debug};
 use anyhow::Result;
 use tokio::sync::mpsc;
 
 use manager::{PinecilManager, PinecilManagerBtle};
+use config::Config;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    env_logger::init();
+    let config = Config::from_file("config.toml")?;
+
+    env_logger::builder()
+        .filter_level(config.log_level().parse()?)
+        .init();
 
     info!("started!");
 
@@ -19,7 +25,7 @@ async fn main() -> Result<()> {
     let (manager_tx, mut manager_rx) = mpsc::channel(32);
     let (mqtt_tx, mqtt_rx) = mpsc::channel(32);
 
-    let mut mqtt = mqtt::MqttClient::new(mqtt_rx);
+    let mut mqtt = mqtt::MqttClient::new(mqtt_rx, config.mqtt().clone());
 
     tokio::spawn(async move {
         mqtt.run_sender().await.unwrap();

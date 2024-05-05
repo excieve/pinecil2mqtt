@@ -1,4 +1,5 @@
 use crate::bulk::PinecilBulkData;
+use crate::config::MqttConfig;
 
 use anyhow::Result;
 use tokio::sync::mpsc;
@@ -24,17 +25,19 @@ impl Message {
 
 pub struct MqttClient {
     channel_rx : mpsc::Receiver<Message>,
+    config: MqttConfig,
 }
 
 impl MqttClient {
-    pub fn new(channel_rx: mpsc::Receiver<Message>) -> Self {
+    pub fn new(channel_rx: mpsc::Receiver<Message>, config: MqttConfig) -> Self {
         Self {
             channel_rx,
+            config,
         }
     }
 
     pub async fn run_sender(&mut self) -> Result<()> {
-        let mut options = MqttOptions::new("pinecil2mqtt", "localhost", 1883);
+        let mut options = MqttOptions::new("pinecil2mqtt", self.config.host(), self.config.port());
         options.set_keep_alive(std::time::Duration::from_secs(60));
 
         let (client, mut eventloop) = AsyncClient::new(options, 10);
