@@ -8,7 +8,7 @@ It is based on the [Pinecil V2 BLE Services](https://github.com/Ralim/IronOS/blo
 ## Features
 
 - Automatically discover and connect to the Pinecil V2 soldering iron via BLE
-- Publish data provided by the Pinecil V2 soldering iron to an MQTT broker
+- Publish data provided by the soldering iron to an MQTT broker
 - Optionally authenticate with the MQTT broker
 
 ## Installation
@@ -35,7 +35,7 @@ password = "password"
 
 # Roadmap
 
-- [ ] Containerize the application
+- [ ] Containerize the application and publish it to Docker Hub
 - [ ] Write unit tests (I know, I know)
 - [ ] Add support for the settings service read characteristics
 - [ ] Add support for the settings service write characteristics via MQTT
