@@ -1,8 +1,10 @@
-use anyhow::{anyhow, bail, Result};
+use anyhow::{bail, Result};
 use btleplug::api::Peripheral as _;
 use btleplug::platform::Peripheral;
+use serde::Deserialize;
+use bincode::deserialize;
 
-#[derive(Debug)]
+#[derive(Debug, Deserialize)]
 pub struct PinecilBulkData {
     live_temp: u32,
     set_point: u32,
@@ -48,11 +50,25 @@ impl<'a> PinecilBulkQuery for PinecilBulkQueryBtle<'a> {
 
             Ok(build_str)
         } else {
-            Err(anyhow!("Could not find build characteristic"))
+            bail!("Could not find build characteristic")
         }
     }
 
+    // Query and decode the Pinecil bulk data from the device's bulk service characteristics
+    // into a `PinecilBulkData` struct
     async fn query_bulk_data(&self) -> Result<PinecilBulkData> {
-        todo!()
+        let crx = self.device.characteristics();
+
+        let bulk_crx = match crx
+            .iter()
+            .find(|c| c.uuid == "9eae1001-9d0d-48c5-aa55-33e27f9bc533".parse().unwrap()) {
+            Some(crx) => crx,
+            None => bail!("Could not find bulk characteristic")
+        };
+
+        let raw_bulk_data = self.device.read(bulk_crx).await?;
+        let bulk_data = deserialize(&raw_bulk_data[..])?;
+
+        Ok(bulk_data)
     }
 }
