@@ -1,13 +1,13 @@
-use std::error::Error;
 use log::{debug, error, info};
 use futures::StreamExt;
+use anyhow::{anyhow, Result};
 
 use btleplug::api::{Central, CentralEvent, Manager as _, Peripheral as _, ScanFilter};
 use btleplug::platform::{Adapter, Manager, Peripheral};
 
 
 pub trait PinecilManager {
-    async fn process_events(&self) -> Result<(), Box<dyn Error>>;
+    async fn process_events(&self) -> Result<()>;
 }
 
 // PinecilManagerBtle encapsulates the Pinecil BLE peripherals though the btleplug Manager API
@@ -16,23 +16,23 @@ pub struct PinecilManagerBtle {
 }
 
 impl PinecilManagerBtle {
-    pub async fn new() -> Result<Self, Box<dyn Error>> {
+    pub async fn new() -> Result<Self> {
         let manager = Manager::new().await?;
 
         Ok(Self { manager })
     }
 
-    async fn get_first_adapter(&self) -> Result<Adapter, Box<dyn Error>> {
+    async fn get_first_adapter(&self) -> Result<Adapter> {
         let adapter_list = self.manager.adapters().await?;
         if adapter_list.is_empty() {
-            return Err("No adapters found".into());
+            return Err(anyhow!("No adapters found"));
         }
 
         Ok(adapter_list.into_iter().next().unwrap())
     }
 
     // Identify the Pinecil from the passed peripheral object by searching the name substring
-    async fn is_pinecil(device: &Peripheral) -> Result<bool, Box<dyn Error>> {
+    async fn is_pinecil(device: &Peripheral) -> Result<bool> {
         let properties = device.properties().await?.unwrap();
         let name = properties.local_name.unwrap_or_default();
 
@@ -58,7 +58,7 @@ impl PinecilManagerBtle {
 
 impl PinecilManager for PinecilManagerBtle {
     // Process the events from the adapter continuously
-    async fn process_events(&self) -> Result<(), Box<dyn Error>> {
+    async fn process_events(&self) -> Result<()> {
         let central = self.get_first_adapter().await?;
         central.start_scan(ScanFilter::default()).await?;
 

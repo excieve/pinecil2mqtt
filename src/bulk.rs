@@ -1,4 +1,4 @@
-use std::error::Error;
+use anyhow::Result;
 use btleplug::platform::Peripheral;
 
 struct PinecilBulkData {
@@ -19,8 +19,8 @@ struct PinecilBulkData {
 }
 
 trait PinecilBulkQuery {
-    async fn query_pinecil_info(&self) -> Result<String, Box<dyn Error>>;
-    async fn query_bulk_data(&self) -> Result<PinecilBulkData, Box<dyn Error>>;
+    async fn query_pinecil_info(&self) -> Result<String>;
+    async fn query_bulk_data(&self) -> Result<PinecilBulkData>;
 }
 
 struct PinecilBulkQueryBtle {
@@ -34,11 +34,11 @@ impl PinecilBulkQueryBtle {
 }
 
 impl PinecilBulkQuery for PinecilBulkQueryBtle {
-    async fn query_pinecil_info(&self) -> Result<String, Box<dyn Error>> {
+    async fn query_pinecil_info(&self) -> Result<String> {
         todo!()
     }
 
-    async fn query_bulk_data(&self) -> Result<PinecilBulkData, Box<dyn Error>> {
+    async fn query_bulk_data(&self) -> Result<PinecilBulkData> {
         todo!()
     }
 }
