@@ -1,15 +1,16 @@
 use log::{debug, error, info};
 use futures::StreamExt;
 use anyhow::{anyhow, Result};
+use tokio::sync::mpsc;
 
 use btleplug::api::{Central, CentralEvent, Manager as _, Peripheral as _, ScanFilter};
 use btleplug::platform::{Adapter, Manager, Peripheral};
 
-use crate::bulk::{PinecilBulkQuery, PinecilBulkQueryBtle};
+use crate::bulk::{PinecilBulkQuery, PinecilBulkQueryBtle, PinecilBulkData};
 
 
 pub trait PinecilManager {
-    async fn process_events(&self) -> Result<()>;
+    async fn process_events(&self, tx: mpsc::Sender<PinecilBulkData>) -> Result<()>;
 }
 
 // PinecilManagerBtle encapsulates the Pinecil BLE peripherals though the btleplug Manager API
@@ -58,20 +59,22 @@ impl PinecilManagerBtle {
     }
 
     // Launch a poller to query the Pinecil bulk data from the device characteristics
-    async fn poll_bulk_data(&self, device: &Peripheral) -> Result<()> {
+    async fn poll_bulk_data(&self, device: &Peripheral, tx: &mpsc::Sender<PinecilBulkData>) -> Result<()> {
         let mut interval = tokio::time::interval(tokio::time::Duration::from_secs(1));
 
         loop {
             interval.tick().await;
             let bulk_data = PinecilBulkQueryBtle::new(device).query_bulk_data().await?;
             debug!("Bulk data: {:?}", bulk_data);
+
+            tx.send(bulk_data).await?;
         }
     }
 }
 
 impl PinecilManager for PinecilManagerBtle {
     // Process the events from the adapter continuously
-    async fn process_events(&self) -> Result<()> {
+    async fn process_events(&self, tx: mpsc::Sender<PinecilBulkData>) -> Result<()> {
         let central = self.get_first_adapter().await?;
         central.start_scan(ScanFilter::default()).await?;
 
@@ -123,7 +126,7 @@ impl PinecilManager for PinecilManagerBtle {
                     // Periodically poll the Pinecil bulk data as IronOS doesn't support
                     // notifications. At the same time, it's more efficient to poll in bulk rather
                     // than querying each value separately in the live data service.
-                    if let Err(e) = self.poll_bulk_data(&device).await {
+                    if let Err(e) = self.poll_bulk_data(&device, &tx).await {
                         error!("Failed to poll bulk data: {}", e);
                     }
                 }
