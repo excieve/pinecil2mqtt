@@ -1,10 +1,10 @@
 use anyhow::{bail, Result};
 use btleplug::api::Peripheral as _;
 use btleplug::platform::Peripheral;
-use serde::Deserialize;
+use serde::{Serialize, Deserialize};
 use bincode::deserialize;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PinecilBulkData {
     live_temp: u32,
     set_point: u32,
