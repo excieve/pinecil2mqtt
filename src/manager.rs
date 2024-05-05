@@ -89,7 +89,19 @@ impl PinecilManager for PinecilManagerBtle {
 
                     }
                     info!("Discovered Pinecil: {:?}", device.address());
-                    debug!("Device properties: {:?}", device.properties().await?);
+                    debug!("Discovered device properties: {:?}", device.properties().await?);
+
+                    if !device.is_connected().await? {
+                        device.connect().await?;
+                    }
+                }
+                CentralEvent::DeviceUpdated(addr) => {
+                    let device = central.peripheral(&addr).await?;
+                    if !Self::is_pinecil(&device).await? {
+                        continue;
+                    }
+
+                    debug!("Updated device properties: {:?}", device.properties().await?);
 
                     if !device.is_connected().await? {
                         device.connect().await?;
@@ -102,7 +114,7 @@ impl PinecilManager for PinecilManagerBtle {
                     }
 
                     info!("Pinecil connected: {:?}", device.address());
-                    debug!("Device properties: {:?}", device.properties().await?);
+                    debug!("Connected device properties: {:?}", device.properties().await?);
 
                     device.discover_services().await?;
 
