@@ -5,6 +5,8 @@ use anyhow::{anyhow, Result};
 use btleplug::api::{Central, CentralEvent, Manager as _, Peripheral as _, ScanFilter};
 use btleplug::platform::{Adapter, Manager, Peripheral};
 
+use crate::bulk::{PinecilBulkQuery, PinecilBulkQueryBtle};
+
 
 pub trait PinecilManager {
     async fn process_events(&self) -> Result<()>;
@@ -54,6 +56,17 @@ impl PinecilManagerBtle {
             })
             .count() == 3
     }
+
+    // Launch a poller to query the Pinecil bulk data from the device characteristics
+    async fn poll_bulk_data(&self, device: Peripheral) -> Result<()> {
+        let mut interval = tokio::time::interval(tokio::time::Duration::from_secs(1));
+
+        loop {
+            interval.tick().await;
+            let bulk_data = PinecilBulkQueryBtle::new(&device).query_bulk_data().await?;
+            debug!("Bulk data: {:?}", bulk_data);
+        }
+    }
 }
 
 impl PinecilManager for PinecilManagerBtle {
@@ -95,6 +108,12 @@ impl PinecilManager for PinecilManagerBtle {
                             check the firmware version and update if necessary.");
                         continue;
                     }
+
+                    // Fetch and print the Pinecil info (build version, etc.)
+                    // let info = PinecilBulkQueryBtle::new(&device).query_pinecil_info().await?;
+                    // info!("Pinecil info: {}", info);
+
+                    // self.poll_bulk_data(device).await?;
                 }
                 CentralEvent::DeviceDisconnected(addr) => {
                     let device = central.peripheral(&addr).await?;

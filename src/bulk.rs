@@ -1,7 +1,8 @@
 use anyhow::Result;
 use btleplug::platform::Peripheral;
 
-struct PinecilBulkData {
+#[derive(Debug)]
+pub struct PinecilBulkData {
     live_temp: u32,
     set_point: u32,
     voltage: u32,
@@ -18,22 +19,22 @@ struct PinecilBulkData {
     power: u32,
 }
 
-trait PinecilBulkQuery {
+pub trait PinecilBulkQuery {
     async fn query_pinecil_info(&self) -> Result<String>;
     async fn query_bulk_data(&self) -> Result<PinecilBulkData>;
 }
 
-struct PinecilBulkQueryBtle {
-    device: Peripheral,
+pub struct PinecilBulkQueryBtle<'a> {
+    device: &'a Peripheral,
 }
 
-impl PinecilBulkQueryBtle {
-    fn new(device: Peripheral) -> Self {
+impl<'a> PinecilBulkQueryBtle<'a> {
+    pub fn new(device: &'a Peripheral) -> Self {
         Self { device }
     }
 }
 
-impl PinecilBulkQuery for PinecilBulkQueryBtle {
+impl<'a> PinecilBulkQuery for PinecilBulkQueryBtle<'a> {
     async fn query_pinecil_info(&self) -> Result<String> {
         todo!()
     }

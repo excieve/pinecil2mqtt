@@ -1,7 +1,7 @@
 mod manager;
 mod bulk;
 
-use log::{debug, error, info};
+use log::info;
 use anyhow::Result;
 
 use manager::{PinecilManager, PinecilManagerBtle};
