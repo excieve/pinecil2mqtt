@@ -126,9 +126,10 @@ impl PinecilManager for PinecilManagerBtle {
 
                     let bulk_query = PinecilBulkQueryBtle::new(&device);
 
-                    // Fetch and print the Pinecil info (build version, etc.), skip on error
+                    // Fetch and print the Pinecil info (build version, device ID), skip on error
                     match bulk_query.query_pinecil_info().await {
-                        Ok(info) => info!("Pinecil firmware verison: {}", info),
+                        Ok((version, id)) =>
+                            info!("Pinecil firmware verison: {}, device ID: {}", version, id),
                         Err(e) => {
                             error!("Failed to fetch Pinecil info: {}", e);
                             continue;
