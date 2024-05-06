@@ -42,12 +42,11 @@ impl PinecilManagerBtle {
         Ok(adapter_list.into_iter().next().unwrap())
     }
 
-    // Identify the Pinecil from the passed peripheral object by searching the name substring
+    // Identify the Pinecil from the passed peripheral object by searching the initial services
     async fn is_pinecil(device: &Peripheral) -> Result<bool> {
         let properties = device.properties().await?.unwrap();
-        let name = properties.local_name.unwrap_or_default();
 
-        Ok(name.to_lowercase().contains("pinecil"))
+        Ok(properties.services.iter().any(|s| s.to_string().contains("9eae1000-9d0d-48c5-aa55-33e27f9bc533")))
     }
 
     // Check that bulk, live and settings services are available
