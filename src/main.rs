@@ -7,9 +7,9 @@ use log::{info, debug};
 use anyhow::Result;
 use tokio::sync::mpsc;
 
-use manager::{PinecilManager, PinecilManagerBtle};
+use manager::{PinecilManager, PinecilManagerBtle, PinecilBulkDataMessage};
 use config::Config;
-use crate::manager::PinecilBulkDataMessage;
+
 
 #[tokio::main]
 async fn main() -> Result<()> {
