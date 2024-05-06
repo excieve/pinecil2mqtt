@@ -71,7 +71,7 @@ impl PinecilManagerBtle {
     }
 
     // Launch a poller to query the Pinecil bulk data from the device characteristics
-    async fn poll_bulk_data(&self, device: &Peripheral, id: String, tx: &mpsc::Sender<PinecilBulkDataMessage>) -> Result<()> {
+    async fn poll_bulk_data(device: &Peripheral, id: String, tx: &mpsc::Sender<PinecilBulkDataMessage>) -> Result<()> {
         let mut interval = tokio::time::interval(tokio::time::Duration::from_secs(1));
         let bulk = PinecilBulkQueryBtle::new(device);
 
@@ -158,9 +158,12 @@ impl PinecilManager for PinecilManagerBtle {
                     // Periodically poll the Pinecil bulk data as IronOS doesn't support
                     // notifications. At the same time, it's more efficient to poll in bulk rather
                     // than querying each value separately in the live data service.
-                    if let Err(e) = self.poll_bulk_data(&device, pinecil_id, &tx).await {
-                        error!("Failed to poll bulk data: {}", e);
-                    }
+                    let tx = tx.clone();
+                    tokio::spawn(async move {
+                        if let Err(e) = Self::poll_bulk_data(&device, pinecil_id, &tx).await {
+                            error!("Failed to poll bulk data: {}", e);
+                        }
+                    });
                 }
                 CentralEvent::DeviceDisconnected(addr) => {
                     let device = central.peripheral(&addr).await?;
