@@ -2,6 +2,8 @@
 
 **This project has been barely tested and might not work as expected. Use at your own risk.**
 
+![Example Grafana dashboard](doc/grafana.png)
+
 This project is a BLE to MQTT gateway for the [Pinecil V2](https://wiki.pine64.org/wiki/Pinecil) soldering irons.
 It is based on the [Pinecil V2 BLE Services](https://github.com/Ralim/IronOS/blob/dev/Documentation/Bluetooth.md)
 from IronOS.
