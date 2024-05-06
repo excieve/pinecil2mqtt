@@ -25,7 +25,7 @@ async fn main() -> Result<()> {
 
     let manager = PinecilManagerBtle::new().await?;
 
-    let (manager_tx, mut manager_rx) = mpsc::channel(32);
+    let (manager_tx, mut manager_rx) = mpsc::channel::<PinecilBulkDataMessage>(32);
     let (mqtt_tx, mqtt_rx) = mpsc::channel(32);
 
     let mut mqtt = mqtt::MqttClient::new(mqtt_rx, config.mqtt().clone());
@@ -34,9 +34,10 @@ async fn main() -> Result<()> {
         mqtt.run_sender().await.unwrap();
     });
 
+    // Main reactor loop that receives bulk data messages from the manager,
+    // transforms them and passes them to the MQTT sender
     tokio::spawn(async move {
-        loop {
-            let bulk_data_message: PinecilBulkDataMessage = manager_rx.recv().await.unwrap();
+        while let Some(bulk_data_message) = manager_rx.recv().await {
             debug!("Received bulk data message: {:?}", bulk_data_message);
 
             let bulk_data = bulk_data_message.data;
