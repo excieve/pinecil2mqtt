@@ -1,10 +1,10 @@
-use crate::bulk::PinecilBulkData;
 use crate::config::MqttConfig;
 
 use anyhow::Result;
 use tokio::sync::mpsc;
 use rumqttc::{AsyncClient, MqttOptions, QoS};
 use log::{debug, error, info};
+use serde::Serialize;
 
 #[derive(Debug, Clone)]
 pub struct Message {
@@ -13,8 +13,8 @@ pub struct Message {
 }
 
 impl Message {
-    pub fn from_pinecil_bulk_data(id: String, data: PinecilBulkData) -> Result<Message> {
-        let payload = serde_json::to_string(&data)?;
+    pub fn from_serialize(id: String, data: &impl Serialize) -> Result<Message> {
+        let payload = serde_json::to_string(data)?;
 
         Ok(Message {
             topic: format!("pinecil/{}/bulk", id),

@@ -2,6 +2,7 @@ use log::{debug, error, info};
 use futures::StreamExt;
 use anyhow::{anyhow, Result};
 use tokio::sync::mpsc;
+use chrono::{DateTime, Utc};
 
 use btleplug::api::{Central, CentralEvent, Manager as _, Peripheral as _, ScanFilter};
 use btleplug::platform::{Adapter, Manager, Peripheral};
@@ -12,6 +13,7 @@ use crate::bulk::{PinecilBulkQuery, PinecilBulkQueryBtle, PinecilBulkData};
 #[derive(Debug, Clone)]
 pub struct PinecilBulkDataMessage {
     pub id: String,
+    pub timestamp: DateTime<Utc>,
     pub data: PinecilBulkData,
 }
 
@@ -76,6 +78,7 @@ impl PinecilManagerBtle {
 
             tx.send(PinecilBulkDataMessage{
                 id: id.clone(),
+                timestamp: Utc::now(),
                 data: bulk_data,
             }).await?;
         }

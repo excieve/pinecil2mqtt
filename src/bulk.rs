@@ -6,20 +6,20 @@ use bincode::deserialize;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PinecilBulkData {
-    live_temp: u32,
-    set_point: u32,
-    voltage: u32,
-    handle_temp: u32,
-    power_level: u32,
-    power_source: u32,
-    tip_resistance: u32,
-    uptime: u32,
-    last_movement: u32,
-    max_tip_temp: u32,
-    tip_voltage: u32,
-    hall_sensor: u32,
-    operating_mode: u32,
-    power: u32,
+    pub live_temp: u32,
+    pub set_point: u32,
+    pub voltage: u32,
+    pub handle_temp: u32,
+    pub power_level: u32,
+    pub power_source: u32,
+    pub tip_resistance: u32,
+    pub uptime: u32,
+    pub last_movement: u32,
+    pub max_tip_temp: u32,
+    pub tip_voltage: u32,
+    pub hall_sensor: u32,
+    pub operating_mode: u32,
+    pub power: u32,
 }
 
 pub trait PinecilBulkQuery {

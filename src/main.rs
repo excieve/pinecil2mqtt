@@ -2,6 +2,7 @@ mod manager;
 mod bulk;
 mod mqtt;
 mod config;
+mod transformer;
 
 use log::{info, debug};
 use anyhow::Result;
@@ -9,6 +10,7 @@ use tokio::sync::mpsc;
 
 use manager::{PinecilManager, PinecilManagerBtle, PinecilBulkDataMessage};
 use config::Config;
+use transformer::{PinecilDataWithLabels, FromPinecilBulkData};
 
 
 #[tokio::main]
@@ -37,7 +39,11 @@ async fn main() -> Result<()> {
             let bulk_data_message: PinecilBulkDataMessage = manager_rx.recv().await.unwrap();
             debug!("Received bulk data message: {:?}", bulk_data_message);
 
-            let message = mqtt::Message::from_pinecil_bulk_data(bulk_data_message.id, bulk_data_message.data).unwrap();
+            let bulk_data = bulk_data_message.data;
+            let data = PinecilDataWithLabels::from_pinecil_bulk_data(&bulk_data)
+                .with_timestamp(bulk_data_message.timestamp);
+
+            let message = mqtt::Message::from_serialize(bulk_data_message.id, &data).unwrap();
             mqtt_tx.send(message).await.unwrap();
         }
     });
