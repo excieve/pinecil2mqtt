@@ -10,7 +10,7 @@ use tokio::sync::mpsc;
 use clap::Parser;
 
 use manager::{PinecilManager, PinecilManagerBtle, PinecilBulkDataMessage};
-use config::Config;
+use config::Settings;
 use transformer::{PinecilDataWithLabels, FromPinecilBulkData};
 
 
@@ -31,8 +31,8 @@ async fn main() -> Result<()> {
     let args = Cli::parse();
 
     let mut config = match args.config {
-        Some(config_path) => Config::from_file(config_path.to_str().unwrap())?,
-        None => Config::default(),
+        Some(config_path) => Settings::new(config_path)?,
+        None => Settings::new(std::path::PathBuf::default())?,
     };
 
     if let Some(log_level) = args.log_level {
@@ -43,7 +43,7 @@ async fn main() -> Result<()> {
         .filter_level(config.log_level().parse()?)
         .init();
 
-    info!("started!");
+    info!("{} v{} started!", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"));
 
     let manager = PinecilManagerBtle::new().await?;
 

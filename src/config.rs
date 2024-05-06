@@ -1,11 +1,13 @@
+use std::path::PathBuf;
 use serde::Deserialize;
 use anyhow::Result;
+use config::{Config, ConfigError, Environment, File};
 
 #[derive(Clone, Debug, Deserialize, Default)]
-pub struct Config {
+pub struct Settings {
     mqtt: MqttConfig,
-    #[serde(default = "Config::default_log_level")]
-    log_level: String,
+    #[serde(default = "Settings::default_log_level")]
+    loglevel: String
 }
 
 #[derive(Clone, Debug, Deserialize, Default)]
@@ -18,16 +20,18 @@ pub struct MqttConfig {
     password: Option<String>,
 }
 
-impl Config {
-    fn default_log_level() -> String {
-        "info".to_string()
+impl Settings {
+    pub fn new(file_path: PathBuf) -> Result<Self, ConfigError> {
+        let cfg = Config::builder()
+            .add_source(File::from(file_path).required(false))
+            .add_source(Environment::with_prefix("P2M").separator("_"))
+            .build()?;
+
+        cfg.try_deserialize()
     }
 
-    pub fn from_file(path: &str) -> Result<Self> {
-        let config_str = std::fs::read_to_string(path)?;
-        let config = toml::from_str(&config_str)?;
-
-        Ok(config)
+    fn default_log_level() -> String {
+        "info".to_string()
     }
 
     pub fn mqtt(&self) -> &MqttConfig {
@@ -35,11 +39,11 @@ impl Config {
     }
 
     pub fn log_level(&self) -> &str {
-        &self.log_level
+        &self.loglevel
     }
 
     pub fn set_log_level(&mut self, level: String) {
-        self.log_level = level;
+        self.loglevel = level;
     }
 }
 
