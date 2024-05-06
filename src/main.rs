@@ -7,15 +7,37 @@ mod transformer;
 use log::{info, debug};
 use anyhow::Result;
 use tokio::sync::mpsc;
+use clap::Parser;
 
 use manager::{PinecilManager, PinecilManagerBtle, PinecilBulkDataMessage};
 use config::Config;
 use transformer::{PinecilDataWithLabels, FromPinecilBulkData};
 
 
+#[derive(Parser, Debug)]
+#[clap(version, about)]
+struct Cli {
+    /// Path to the configuration file
+    #[clap(short, long)]
+    config: Option<std::path::PathBuf>,
+
+    /// Log level
+    #[clap(short, long)]
+    log_level: Option<String>,
+}
+
 #[tokio::main]
 async fn main() -> Result<()> {
-    let config = Config::from_file("config.toml")?;
+    let args = Cli::parse();
+
+    let mut config = match args.config {
+        Some(config_path) => Config::from_file(config_path.to_str().unwrap())?,
+        None => Config::default(),
+    };
+
+    if let Some(log_level) = args.log_level {
+        config.set_log_level(log_level);
+    }
 
     env_logger::builder()
         .filter_level(config.log_level().parse()?)

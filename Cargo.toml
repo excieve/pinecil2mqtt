@@ -1,6 +1,9 @@
 [package]
 name = "pinecil2mqtt"
 version = "0.1.0"
+description = "A simple tool to connect a Pinecil V2 soldering iron to an MQTT broker"
+authors = ["Artem Hluvchynskyi <excieve@gmail.com>"]
+license-file = "LICENSE"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -19,3 +22,4 @@ serde_json = "1.0"
 toml = "0.8"
 chrono = "0.4"
 uuid = "1.8"
+clap = { version = "4.5", features = ["derive"] }

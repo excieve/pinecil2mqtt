@@ -1,14 +1,14 @@
 use serde::Deserialize;
 use anyhow::Result;
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Default)]
 pub struct Config {
     mqtt: MqttConfig,
     #[serde(default = "Config::default_log_level")]
     log_level: String,
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Default)]
 pub struct MqttConfig {
     #[serde(default = "MqttConfig::default_host")]
     host: String,
@@ -36,6 +36,10 @@ impl Config {
 
     pub fn log_level(&self) -> &str {
         &self.log_level
+    }
+
+    pub fn set_log_level(&mut self, level: String) {
+        self.log_level = level;
     }
 }
 
