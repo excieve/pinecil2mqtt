@@ -9,6 +9,7 @@ use tokio::sync::mpsc;
 
 use manager::{PinecilManager, PinecilManagerBtle};
 use config::Config;
+use crate::manager::PinecilBulkDataMessage;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -33,10 +34,10 @@ async fn main() -> Result<()> {
 
     tokio::spawn(async move {
         loop {
-            let bulk_data = manager_rx.recv().await.unwrap();
-            debug!("Received bulk data: {:?}", bulk_data);
+            let bulk_data_message: PinecilBulkDataMessage = manager_rx.recv().await.unwrap();
+            debug!("Received bulk data message: {:?}", bulk_data_message);
 
-            let message = mqtt::Message::from_pinecil_bulk_data("1".to_string(), bulk_data).unwrap();
+            let message = mqtt::Message::from_pinecil_bulk_data(bulk_data_message.id, bulk_data_message.data).unwrap();
             mqtt_tx.send(message).await.unwrap();
         }
     });
