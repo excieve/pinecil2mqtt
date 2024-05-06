@@ -1,6 +1,6 @@
 # Pinecil V2 BLE to MQTT Gateway
 
-**This is actively being developed and is not yet ready for use.**
+**This project has been barely tested and might not work as expected. Use at your own risk.**
 
 This project is a BLE to MQTT gateway for the [Pinecil V2](https://wiki.pine64.org/wiki/Pinecil) soldering irons.
 It is based on the [Pinecil V2 BLE Services](https://github.com/Ralim/IronOS/blob/dev/Documentation/Bluetooth.md)
@@ -28,16 +28,23 @@ there, the data can be consumed by other applications or services (e.g. Home Ass
 
 1. Clone this repository
 2. Run `cargo build --release` to build the project
-3. Set up a configuration file (see [Configuration](#configuration))
+3. Set up a configuration file or environment variables (see [Configuration](#configuration))
 4. Run the binary from the `target/release` directory
 5. Enjoy!
 
 ## Configuration
 
-The configuration file is a simple TOML file. Here is an example configuration:
+The configuration file is a simple TOML file, path to which can be passed using the `--config` CLI argument:
+```shell
+./target/release/pinecil2mqtt --config /path/to/config.toml
+```
+
+See `pinecil2mqtt --help` for more information on available CLI arguments.
+
+Here is an example configuration (username and password are optional):
 
 ```toml
-log_level = "info"
+loglevel = "info"
 
 [mqtt]
 host = "mqtt.example.com"
@@ -45,6 +52,13 @@ port = 1883
 username = "username"
 password = "password"
 ```
+
+Alternatively, you can use environment variables to configure the application:
+```shell
+P2M_MQTT_HOST=mqtt.example.com P2M_LOGLEVEL=debug ./target/release/pinecil2mqtt
+```
+
+Config file and environment variables are merged, with environment variables taking precedence.
 
 ## MQTT Data Structure
 
