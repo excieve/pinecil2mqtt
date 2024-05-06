@@ -3,6 +3,12 @@ use btleplug::api::Peripheral as _;
 use btleplug::platform::Peripheral;
 use serde::{Serialize, Deserialize};
 use bincode::deserialize;
+use uuid::Uuid;
+
+
+const PINECIL_BULK_LIVE_CHAR_UUID: Uuid = Uuid::from_u128(0x9eae1001_9d0d_48c5_aa55_33e27f9bc533);
+const PINECIL_BULK_BUILD_CHAR_UUID: Uuid = Uuid::from_u128(0x9eae1003_9d0d_48c5_aa55_33e27f9bc533);
+const PINECIL_BULK_DEVICE_ID_CHAR_UUID: Uuid = Uuid::from_u128(0x9eae1005_9d0d_48c5_aa55_33e27f9bc533);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PinecilBulkData {
@@ -47,7 +53,7 @@ impl<'a> PinecilBulkQuery for PinecilBulkQueryBtle<'a> {
 
         if let Some(build_crx) = crx
             .iter()
-            .find(|c| c.uuid == "9eae1003-9d0d-48c5-aa55-33e27f9bc533".parse().unwrap()) {
+            .find(|c| c.uuid == PINECIL_BULK_BUILD_CHAR_UUID) {
             let build = self.device.read(build_crx).await?;
             build_str = String::from_utf8(build)?;
         } else {
@@ -56,7 +62,7 @@ impl<'a> PinecilBulkQuery for PinecilBulkQueryBtle<'a> {
 
         if let Some(device_id_crx) = crx
             .iter()
-            .find(|c| c.uuid == "9eae1005-9d0d-48c5-aa55-33e27f9bc533".parse().unwrap()) {
+            .find(|c| c.uuid == PINECIL_BULK_DEVICE_ID_CHAR_UUID) {
             let device_id = self.device.read(device_id_crx).await?;
             device_id_str = format!("{:08X}", u32::from_le_bytes(device_id.try_into().unwrap()));
         } else {
@@ -73,7 +79,7 @@ impl<'a> PinecilBulkQuery for PinecilBulkQueryBtle<'a> {
 
         let bulk_crx = match crx
             .iter()
-            .find(|c| c.uuid == "9eae1001-9d0d-48c5-aa55-33e27f9bc533".parse().unwrap()) {
+            .find(|c| c.uuid == PINECIL_BULK_LIVE_CHAR_UUID) {
             Some(crx) => crx,
             None => bail!("Could not find bulk characteristic")
         };

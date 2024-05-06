@@ -3,12 +3,17 @@ use futures::StreamExt;
 use anyhow::{anyhow, Result};
 use tokio::sync::mpsc;
 use chrono::{DateTime, Utc};
+use uuid::Uuid;
 
 use btleplug::api::{Central, CentralEvent, Manager as _, Peripheral as _, ScanFilter};
 use btleplug::platform::{Adapter, Manager, Peripheral};
 
 use crate::bulk::{PinecilBulkQuery, PinecilBulkQueryBtle, PinecilBulkData};
 
+
+const PINECIL_BULK_SERVICE_UUID: Uuid = Uuid::from_u128(0x9eae1000_9d0d_48c5_aa55_33e27f9bc533);
+const PINECIL_LIVE_SERVICE_UUID: Uuid = Uuid::from_u128(0xd85ef000_168e_4a71_aa55_33e27f9bc533);
+const PINECIL_SETTINGS_SERVICE_UUID: Uuid = Uuid::from_u128(0xf6d80000_5a10_4eba_aa55_33e27f9bc533);
 
 #[derive(Debug, Clone)]
 pub struct PinecilBulkDataMessage {
@@ -46,7 +51,7 @@ impl PinecilManagerBtle {
     async fn is_pinecil(device: &Peripheral) -> Result<bool> {
         let properties = device.properties().await?.unwrap();
 
-        Ok(properties.services.iter().any(|s| s.to_string().contains("9eae1000-9d0d-48c5-aa55-33e27f9bc533")))
+        Ok(properties.services.iter().any(|s| *s == PINECIL_BULK_SERVICE_UUID))
     }
 
     // Check that bulk, live and settings services are available
@@ -58,9 +63,9 @@ impl PinecilManagerBtle {
         services
             .iter()
             .filter(|s| {
-                s.uuid == "9eae1000-9d0d-48c5-aa55-33e27f9bc533".parse().unwrap() ||
-                s.uuid == "d85ef000-168e-4a71-aa55-33e27f9bc533".parse().unwrap() ||
-                s.uuid == "f6d80000-5a10-4eba-aa55-33e27f9bc533".parse().unwrap()
+                s.uuid == PINECIL_BULK_SERVICE_UUID ||
+                s.uuid == PINECIL_LIVE_SERVICE_UUID ||
+                s.uuid == PINECIL_SETTINGS_SERVICE_UUID
             })
             .count() == 3
     }
