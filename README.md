@@ -8,9 +8,9 @@ This project is a BLE to MQTT gateway for the [Pinecil V2](https://wiki.pine64.o
 It is based on the [Pinecil V2 BLE Services](https://github.com/Ralim/IronOS/blob/dev/Documentation/Bluetooth.md)
 from IronOS.
 
-While there are already [some projects](#alternative-projects) that read data from the Pinecil V2 soldering iron via BLE,
-this project aims to provide a more flexible and extensible solution by publishing the data to an MQTT broker. From
-there, the data can be consumed by other applications or services (e.g. Home Assistant, Grafana).
+While there are already [some excellent projects](#alternative-projects) that read data from the Pinecil V2 soldering
+iron via BLE, this project aims to provide a more flexible and extensible solution by publishing the data to an MQTT
+broker. From there, the data can be consumed by other applications or services (e.g. Home Assistant, Grafana).
 
 ## Features
 
@@ -18,6 +18,7 @@ there, the data can be consumed by other applications or services (e.g. Home Ass
 - [x] Publish data provided by the soldering iron to an MQTT broker
 - [x] Optionally authenticate with the MQTT broker
 - [x] Transform raw data into human-readable values
+- [x] Can be run as a standalone binary or in a container
 
 ## Pre-requisites
 
@@ -27,6 +28,29 @@ there, the data can be consumed by other applications or services (e.g. Home Ass
 - An MQTT broker (e.g. [Mosquitto](https://mosquitto.org/))
 
 ## Installation
+
+### With containers
+
+1. Pull the image from Docker Hub:
+   ```shell
+   docker pull excieve/pinecil2mqtt:dev
+   ```
+2. Run the container (on a Linux machine) with the following command, replacing `mqtt.example.com` with your MQTT broker:
+   ```shell
+    docker run -d -e P2M_MQTT_HOST=mqtt.example.com -v /run/dbus/:/run/dbus excieve/pinecil2mqtt:dev
+   ```
+3. Enjoy!
+
+#### Caveats
+
+The container needs access to the host's D-Bus socket to be able to communicate with BLE devices. This is
+achieved by mounting the host's D-Bus socket into the container. This might not work on all platforms. 
+
+Additionally, this image is built on an Alpine Linux base image, which is known to be particular about DNS resolution.
+If you encounter issues with resolving your MQTT broker's hostname, you might need to use IP address instead. This might
+change in the future.
+
+### From source
 
 1. Clone this repository
 2. Run `cargo build --release` to build the project
@@ -93,7 +117,6 @@ the unique ID of your Pinecil V2 soldering iron. The payload is a JSON object th
 
 # Roadmap
 
-- [ ] Containerize the application and publish it to Docker Hub
 - [ ] Write unit tests (I know, I know)
 - [ ] Add support for the settings service read characteristics
 - [ ] Add support for the settings service write characteristics via MQTT
@@ -109,4 +132,3 @@ the unique ID of your Pinecil V2 soldering iron. The payload is a JSON object th
 # License
 
 This project is licensed under the Apache License, Version 2.0. See the [LICENSE](LICENSE) file for more information.
-
