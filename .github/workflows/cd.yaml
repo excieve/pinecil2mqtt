@@ -30,7 +30,7 @@ jobs:
         with:
           images: excieve/pinecil2mqtt
           flavor: |
-            latest: false
+            latest=false
           tags: |
             type=sha,format=long,prefix=
             type=raw,value=dev
